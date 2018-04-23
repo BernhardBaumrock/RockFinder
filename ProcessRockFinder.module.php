@@ -32,6 +32,7 @@ class ProcessRockFinder extends Process {
         'tabSize'             => 2,
         'printMarginColumn'   => false,
       ));
+      $ace->notes = 'Execute on CTRL+ENTER or ALT+ENTER';
       $f = $ace;
     }
     $f->name = 'code';
@@ -41,7 +42,9 @@ class ProcessRockFinder extends Process {
 
     // save code to file
     file_put_contents($this->config->paths->assets . 'RockGrid/tester.txt', $code);
-    $sql = eval(str_replace('<?php', '//', $code));
+    $search = ['<?php', 'new RockFinder'];
+    $replace = ['//', 'new \ProcessWire\RockFinder'];
+    $sql = eval(str_replace($search, $replace, $code));
     
     $form->add([
       'type' => 'RockGrid',
@@ -54,13 +57,14 @@ class ProcessRockFinder extends Process {
     $this->config->scripts->add('//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js');
     $form->add([
       'type' => 'markup',
-      'value' => "<pre><code>$sql</code></pre><script>hljs.initHighlightingOnLoad();</script>",
+      'value' => "<pre><code>$sql</code></pre>",
       'label' => 'Resulting SQL',
       'collapsed' => Inputfield::collapsedYes,
     ]);
     
     $form->add([
       'type' => 'submit',
+      'id' => 'submit',
       'value' => __('Execute SQL'),
       'icon' => 'bolt',
     ]);
