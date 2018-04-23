@@ -14,7 +14,7 @@ In short: It is far too much work to efficiently and easily get an array of data
 
 ## Examples
 
-Add multiple fields
+### Add multiple fields
 ```php
 $finder = new RockFinder('template=person');
 foreach($finder->addFields(['status', 'created', 'templates_id']) as $f) {
@@ -50,3 +50,14 @@ templates_id => "1"
 
 ---
 
+### Closures
+
+ATTENTION: This executes a $pages->find() operation on each row, so this makes the whole query significantly slower than without using closures. Closures are a good option if you need to query complex data and only have a very limited number of rows.
+
+```php
+$finder = new RockFinder("id>0", [
+  'path' => function($page) {
+    return $page->path;
+  },
+]);
+```

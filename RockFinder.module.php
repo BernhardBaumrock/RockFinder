@@ -8,6 +8,15 @@
 class RockFinder extends WireData implements Module {
   private $selector;
   private $fields = [];
+  private $closures = [];
+
+  // here we can set a limit to use for the selector
+  // this is needed for getDataColumns to only query one row for better performance
+  public $limit = '';
+
+  // array holding debug info
+  public $debug = false;
+  public $debuginfo = [];
 
   // sort the returned array?
   // if this option is set to true ($finder->sort = true;) the returned
@@ -33,7 +42,7 @@ class RockFinder extends WireData implements Module {
   /**
    * add a field to the finder
    */
-  public function addField($name, $columns = [], $type = null) {
+  public function addField($name, $columns = [], $type = null, $alias = null) {
     // create new field
     // if the type is set, use this type
     if(!$type) {
@@ -56,6 +65,7 @@ class RockFinder extends WireData implements Module {
 
     $class = "\ProcessWire\RockFinderField".ucfirst($type);
     $field = new $class($name, $columns, $type);
+    if($alias) $field->alias = $alias;
     
     // add it to the fields array
     $this->fields[] = $field;
@@ -67,7 +77,29 @@ class RockFinder extends WireData implements Module {
    */
   public function addFields($fields) {
     $arr = [];
-    foreach($fields as $field) $arr[] = $this->addField($field);
+    foreach($fields as $k=>$field) {
+      $alias = is_string($k) ? $k : null;
+      $type = null;
+
+      // check if the field has a closure
+      if(is_callable($field) AND !is_string($field)) {
+        $type = 'closure';
+
+        // save this closure to the array
+        $this->closures[$alias] = $field;
+
+        // set the fieldname to the alias
+        $field = $alias;
+      }
+
+      // add thid field to the array
+      $arr[] = $this->addField(
+        $field,
+        null,
+        $type,
+        $alias
+      );
+    }
     return $arr;
   }
 
@@ -84,13 +116,21 @@ class RockFinder extends WireData implements Module {
    * get sql for this finder
    */
   public function getSQL() {
-    $pageIDs = implode(",", $this->wire->pages->findIDs($this->selector));
+    $sqltimer = $this->timer('getSQL');
+    
+    $timer = $this->timer('findIDs');
+    $selector = $this->selector.$this->limit;
+    $pageIDs = implode(",", $this->wire->pages->findIDs($selector));
+    $this->timer('findIDs', $timer, $selector);
+
     $sql = "SELECT\n  `pages`.`id` AS `id`";
     foreach($this->fields as $field) $sql .= $field->getJoinSelect();
     $sql .= "\nFROM\n  `pages`";
     foreach($this->fields as $field) $sql .= $field->getJoin();
     $sql .= "\nWHERE\n  `pages`.`id` IN ($pageIDs)";
     if($this->sort) $sql .= "\nORDER BY\n  field(`pages`.`id`, $pageIDs)";
+
+    $this->timer('getSQL', $sqltimer);
     return $sql;
   }
 
@@ -98,7 +138,70 @@ class RockFinder extends WireData implements Module {
    * get array of objects for this finder
    */
   public function getObjects() {
+    $timer = $this->timer('getObjects');
     $results = $this->database->query($this->getSQL());
-    return $results->fetchAll(\PDO::FETCH_OBJ);
+    $objects = $results->fetchAll(\PDO::FETCH_OBJ);
+
+    $clstimer = $this->timer('executeClosures');
+    $closures = $this->executeClosures($objects);
+    $this->timer('executeClosures', $clstimer);
+    
+    $this->timer('getObjects', $timer, 'Includes executeClosures');
+    return $closures;
+  }
+
+  /**
+   * execute closures
+   */
+  private function executeClosures($objects) {
+
+    // if limit is set return the objects
+    if($this->limit != '') return $objects;
+
+    // if no closures exist return the objects
+    if(!count($this->closures)) return $objects;
+
+    // otherwise loop all objects and execute closures
+    foreach($this->closures as $column => $closure) {
+      foreach($objects as $row) {
+        // find the column and execute closure
+        $page = $this->pages->get($row->id);
+        $row->{$column} = $closure->__invoke($page);
+      }
+    }
+    return $objects;
+  }
+
+  /**
+   * start timer or add it to debuginfo
+   */
+  private function timer($name, $timer = null, $desc = '') {
+    if(!$this->debug) return;
+
+    if(!$timer) return Debug::timer();
+    else {
+      $this->debuginfo[] = [
+        'name' => $name,
+        'value' => Debug::timer($timer)*1000,
+        'desc' => $desc,
+      ];
+    }
+  }
+
+  /**
+   * debugInfo PHP 5.6+ magic method
+   *
+   * This is used when you print_r() an object instance.
+   *
+   * @return array
+   *
+   */
+  public function __debugInfo() {
+    $info = parent::__debugInfo();
+    $info['selector'] = $this->selector;
+    $info['fields'] = $this->fields;
+    $info['closures'] = $this->closures;
+    $info['debuginfo'] = $this->debuginfo;
+    return $info;
   }
 }

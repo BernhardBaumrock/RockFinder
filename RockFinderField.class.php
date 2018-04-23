@@ -9,7 +9,7 @@ abstract class RockFinderField extends WireData {
   // todo: change parameters to one options array
   public function __construct($name, $columns, $type) {
     $this->name = $this->alias = $name;
-    $this->columns = array_merge(['data'], $columns);
+    $this->columns = array_merge(['data'], $columns ?: []);
     $this->type = $type;
   }
 
@@ -52,8 +52,9 @@ abstract class RockFinderField extends WireData {
    */
   public function getJoinSelect() {
     $sql = '';
-    foreach($this->columns as $column)
+    foreach($this->columns as $column) {
       $sql .= ",\n  `$this->alias`.`{$this->fieldAlias($column)}` AS `{$this->fieldAlias($column)}`";
+    }
     return $sql;
   }
 

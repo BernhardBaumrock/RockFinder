@@ -32,32 +32,44 @@ class ProcessRockFinder extends Process {
         'tabSize'             => 2,
         'printMarginColumn'   => false,
       ));
-      $ace->notes = 'Execute on CTRL+ENTER or ALT+ENTER';
+      $ace->notes = "Execute on CTRL+ENTER or ALT+ENTER";
+      $ace->notes .= "\nThe code must return either an SQL statement or a RockFinder instance";
       $f = $ace;
     }
     $f->name = 'code';
     $f->value = $code = $this->input->post->code ?: file_get_contents($this->config->paths->assets . 'RockGrid/tester.txt');
-    $f->label = 'SQL that gets executed';
+    $f->label = 'Code to execute';
     $form->add($f);
 
     // save code to file
     file_put_contents($this->config->paths->assets . 'RockGrid/tester.txt', $code);
     $search = ['<?php', 'new RockFinder'];
     $replace = ['//', 'new \ProcessWire\RockFinder'];
-    $sql = eval(str_replace($search, $replace, $code));
-    
-    $form->add([
-      'type' => 'RockGrid',
-      'label' => 'Result',
-      'name' => 'result',
-      'sql' => $sql,
-    ]);
+    $code = eval(str_replace($search, $replace, $code));
+
+    $f = $this->modules->get('InputfieldRockGrid');
+    $f->type = 'RockGrid';
+    $f->label = 'Result';
+    $f->name = 'result';    
+    if($code instanceof RockFinder) {
+      $finder = $code;
+      // get code of this finder
+      $code = $finder->getSQL();
+
+      // enable debugging now the initial sql request is done
+      $finder->debug = true;
+      $f->setData($finder);
+    }
+    else {
+      $f->sql = $code;
+    }
+    $form->add($f);
 
     $this->config->styles->add('//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css');
     $this->config->scripts->add('//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js');
     $form->add([
       'type' => 'markup',
-      'value' => "<pre><code>$sql</code></pre>",
+      'value' => "<pre><code>$code</code></pre>",
       'label' => 'Resulting SQL',
       'collapsed' => Inputfield::collapsedYes,
     ]);
