@@ -50,14 +50,15 @@ class ProcessRockFinder extends Process {
     $f = $this->modules->get('InputfieldRockGrid');
     $f->type = 'RockGrid';
     $f->label = 'Result';
-    $f->name = 'result';    
+    $f->name = 'result';
+    $f->debug = true;
     if($code instanceof RockFinder) {
       $finder = $code;
+      $finder->debug = true;
       // get code of this finder
       $code = $finder->getSQL();
 
       // enable debugging now the initial sql request is done
-      $finder->debug = true;
       $f->setData($finder);
     }
     else {

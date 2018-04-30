@@ -15,8 +15,13 @@ class RockFinder extends WireData implements Module {
   public $limit = '';
 
   // array holding debug info
-  public $debug = false;
+  public $debug;
   public $debuginfo = [];
+
+  // here we store the composed sql query
+  // this is to make several $finder->getSQL() calls
+  // only create the query once
+  public $sql;
 
   // sort the returned array?
   // if this option is set to true ($finder->sort = true;) the returned
@@ -116,6 +121,9 @@ class RockFinder extends WireData implements Module {
    * get sql for this finder
    */
   public function getSQL() {
+    // if the sql statement was already created we return it
+    if($this->sql) return $this->sql;
+
     $sqltimer = $this->timer('getSQL');
     
     $timer = $this->timer('findIDs');
@@ -131,6 +139,7 @@ class RockFinder extends WireData implements Module {
     if($this->sort) $sql .= "\nORDER BY\n  field(`pages`.`id`, $pageIDs)";
 
     $this->timer('getSQL', $sqltimer);
+    $this->sql = $sql;
     return $sql;
   }
 
@@ -145,8 +154,13 @@ class RockFinder extends WireData implements Module {
     $clstimer = $this->timer('executeClosures');
     $closures = $this->executeClosures($objects);
     $this->timer('executeClosures', $clstimer);
+
+    $ajax = $this->ajax
+      ? ', AJAX is turned ON and not tracked'
+      : ''
+      ;
     
-    $this->timer('getObjects', $timer, 'Includes executeClosures');
+    $this->timer('getObjects', $timer, 'Includes executeClosures' . $ajax);
     return $closures;
   }
 
