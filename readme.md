@@ -61,3 +61,13 @@ $finder = new RockFinder("id>0", [
   },
 ]);
 ```
+
+---
+
+### Multilanguage
+
+Multilanguage is ON by default. Options:
+```php
+$finder->strictLanguage = false;
+$finder->multiLang = true;
+```

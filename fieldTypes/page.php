@@ -11,8 +11,7 @@ class RockFinderFieldPage extends RockFinderField {
     $sql .= ",\n  `$this->alias`.`data` AS `$this->alias`";
     foreach($this->columns as $column) {
       if($column == 'data') continue;
-      // todo: data is not multilanguage
-      $sql .= ",\n  GROUP_CONCAT(`$column`.`data` ORDER BY `$this->alias`.`sort` SEPARATOR '$this->separator') AS `$column`";
+      $sql .= ",\n  GROUP_CONCAT({$this->dataColumn($column)} ORDER BY `$this->alias`.`sort` SEPARATOR '$this->separator') AS `$column`";
     }
     $sql .= "\nFROM `field_{$this->name}` AS `$this->alias`";
 
