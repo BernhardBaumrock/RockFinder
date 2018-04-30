@@ -13,7 +13,7 @@ class RockFinder extends WireData implements Module {
   // here we can set a limit to use for the selector
   // this is needed for getDataColumns to only query one row for better performance
   public $limit = '';
-
+ 
   // array holding debug info
   public $debug;
   public $debuginfo = [];
@@ -185,6 +185,21 @@ class RockFinder extends WireData implements Module {
     }
     return $objects;
   }
+  
+  /**
+   * return an Array from a given sql statement
+   * this is used for simple sub-selects that store aggregated data
+   * it always returns an array of key/value pars (2 columns)
+   * the sql statement MUST select id + val, eg:
+   * SELECT fg AS id, count(fg) as val FROM ({$finder->getSQL()}) as fg group by fg
+   */
+  public function getArrayFromSql($sql) {
+    $result = wire('database')->query($sql);
+    $arr = [];
+    while($row = $result->fetch(\PDO::FETCH_ASSOC)) $arr[$row['id']] = $row['val'];
+    return $arr;
+  }
+
 
   /**
    * start timer or add it to debuginfo
