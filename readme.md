@@ -71,3 +71,5 @@ Multilanguage is ON by default. Options:
 $finder->strictLanguage = false;
 $finder->multiLang = true;
 ```
+
+test
