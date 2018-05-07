@@ -16,7 +16,7 @@ $info = array(
   'version' => 1,
   'author' => 'Bernhard Baumrock, baumrock.com',
   'icon' => 'bolt',
-  'requires' => ['RockGrid'],
+  // 'requires' => ['FieldtypeRockGrid'],
 
   'page' => array(
     'name' => 'rockfindertester',

@@ -138,7 +138,7 @@ class RockFinder extends WireData implements Module {
     $sql .= "\nWHERE\n  `pages`.`id` IN ($pageIDs)";
     if($this->sort) $sql .= "\nORDER BY\n  field(`pages`.`id`, $pageIDs)";
 
-    $this->timer('getSQL', $sqltimer);
+    $this->timer('getSQL', $sqltimer, "<textarea>$sql</textarea>");
     $this->sql = $sql;
     return $sql;
   }
@@ -147,9 +147,18 @@ class RockFinder extends WireData implements Module {
    * get array of objects for this finder
    */
   public function getObjects() {
+    // return empty array if no pages where found
+
     $timer = $this->timer('getObjects');
-    $results = $this->database->query($this->getSQL());
-    $objects = $results->fetchAll(\PDO::FETCH_OBJ);
+    try {
+      $results = $this->database->query($this->getSql());
+      $objects = $results->fetchAll(\PDO::FETCH_OBJ);
+    }
+    catch(\PDOException $e) {
+      // if the sql has an error we return an empty resultset
+      // this is the case when no pages where found or the sql is not correct
+      return [];
+    }
 
     $clstimer = $this->timer('executeClosures');
     $closures = $this->executeClosures($objects);
