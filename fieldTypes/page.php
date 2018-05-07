@@ -8,7 +8,7 @@ class RockFinderFieldPage extends RockFinderField {
   public function getSql() {
     $sql = "SELECT";
     $sql .= "\n  `$this->alias`.`pages_id` AS `pageid`";
-    $sql .= ",\n  `$this->alias`.`data` AS `$this->alias`";
+    $sql .= ",\n  GROUP_CONCAT(`$this->alias`.`data` ORDER BY `$this->alias`.`sort` SEPARATOR '$this->separator') AS `$this->alias`";
     foreach($this->columns as $column) {
       if($column == 'data') continue;
       $sql .= ",\n  GROUP_CONCAT({$this->dataColumn($column)} ORDER BY `$this->alias`.`sort` SEPARATOR '$this->separator') AS `$column`";
