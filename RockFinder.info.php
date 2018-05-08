@@ -6,7 +6,4 @@ $info = [
   'singular' => true, 
   'autoload' => false, 
   'icon' => 'search',
-  'requires' => [
-    'ProcessWire>=3.0.46', // we need the findIDs() method
-  ],
 ];
