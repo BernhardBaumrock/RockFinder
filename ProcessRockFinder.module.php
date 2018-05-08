@@ -50,7 +50,7 @@ class ProcessRockFinder extends Process {
     $f = $this->modules->get('InputfieldRockGrid');
     $f->type = 'RockGrid';
     $f->label = 'Result';
-    $f->name = 'result';
+    $f->name = 'ProcessRockFinderResult';
     $f->debug = true;
     if($code instanceof RockFinder) {
       $finder = $code;

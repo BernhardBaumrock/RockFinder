@@ -10,3 +10,31 @@ $(document).ready(function() {
   });
 
 });
+
+document.addEventListener('RockGridItemBeforeInit', function(e) {
+  if(e.target.id != 'RockGridItem_ProcessRockFinderResult') return;
+  var grid = RockGrid.getGrid(e.target.id);
+  
+  // overwrite rowactions for first column
+  col = grid.getColDef('id');
+  col.cellRenderer = function(params) {
+    var grid = RockGrid.getGrid(params);
+    // extend the current renderer and add custom icons
+    return '<span>' + params.data.id + '</span>' + RockGrid.renderers.actionItems(params, [{
+      icon: 'fa fa-search',
+      href: '/admin/page/edit/?id=' + params.data.id,
+      str: 'show',
+      class: 'class="pw-panel"',
+      target: 'target="_blank"',
+    }]);
+  }
+});
+
+document.addEventListener('RockGridButtons.beforeRender', function(e) {
+  if(e.target.id != 'RockGridWrapper_ProcessRockFinderResult') return;
+  var grid = RockGrid.getGrid(e.target);
+  var plugin = grid.plugins.buttons;
+
+  // remove a btton
+  plugin.buttons.remove('refresh');
+});

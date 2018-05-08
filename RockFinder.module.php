@@ -143,7 +143,7 @@ class RockFinder extends WireData implements Module {
     $where = substr($finderSql, strpos($finderSql, 'WHERE'));
     $sql .= "\n".$where;
 
-    $this->timer('getSQL', $sqltimer, "<textarea>$sql</textarea>");
+    $this->timer('getSQL', $sqltimer, "<textarea class='noAutosize' rows=5>$sql</textarea>");
     $this->sql = $sql;
     return $sql;
   }
