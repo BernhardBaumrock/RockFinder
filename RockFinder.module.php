@@ -23,13 +23,6 @@ class RockFinder extends WireData implements Module {
   // only create the query once
   public $sql;
 
-  // sort the returned array?
-  // if this option is set to true ($finder->sort = true;) the returned
-  // array will be returned in the same order as the pages from the findIDs() operation
-  // this can increase the execution time significantly! especially on large datasets. use with caution!
-  // see https://processwire.com/talk/topic/18983-rocksqlfinder-highly-efficient-and-flexible-sql-finder-module/?do=findComment&comment=165703
-  public $sort = true;
-
   public function __construct($selector = '', $fields = []) {
     $this->selector = $selector;
 
@@ -126,17 +119,29 @@ class RockFinder extends WireData implements Module {
 
     $sqltimer = $this->timer('getSQL');
     
-    $timer = $this->timer('findIDs');
-    $selector = $this->selector.$this->limit;
-    $pageIDs = implode(",", $this->wire->pages->findIDs($selector));
-    $this->timer('findIDs', $timer, $selector);
+    // $timer = $this->timer('findIDs');
+    // $selector = $this->selector.$this->limit;
+    // $pageIDs = implode(",", $this->wire->pages->findIDs($selector));
+    // $this->timer('findIDs', $timer, $selector);
 
     $sql = "SELECT\n  `pages`.`id` AS `id`";
     foreach($this->fields as $field) $sql .= $field->getJoinSelect();
     $sql .= "\nFROM\n  `pages`";
     foreach($this->fields as $field) $sql .= $field->getJoin();
-    $sql .= "\nWHERE\n  `pages`.`id` IN ($pageIDs)";
-    if($this->sort) $sql .= "\nORDER BY\n  field(`pages`.`id`, $pageIDs)";
+
+    // UPDATE: we do not use findIDs, we use the WHERE part of a regular pages->find() operation
+    // this makes it possible to use RockFinder with pw versions prior to findIDs support
+    // and also makes the sort order always be the same like in the selector (also more performant)
+    // the old WHERE statement was this:
+    // $sql .= "\nWHERE\n  `pages`.`id` IN ($pageIDs)";
+    // if($this->sort) $sql .= "\nORDER BY\n  field(`pages`.`id`, $pageIDs)";
+
+    // new WHERE statement from regular pages->find() query
+    $selector = new Selectors($this->selector.$this->limit);
+    $pf = new PageFinder();
+    $finderSql = $pf->find($selector, ['returnQuery' => true])->prepare()->queryString;
+    $where = substr($finderSql, strpos($finderSql, 'WHERE'));
+    $sql .= "\n".$where;
 
     $this->timer('getSQL', $sqltimer, "<textarea>$sql</textarea>");
     $this->sql = $sql;
