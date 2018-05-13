@@ -64,6 +64,15 @@ d($finder->getObjects());
 
 Notice that this query takes only 239ms and uses 0.19MB of memory while it queries and aggregates more than 10.000 pages!
 
+The most basic query would be this one (not doing anything, of course - just for demonstration):
+
+```php
+$finder = new RockFinder('template=invoice, limit=0', ['value', 'date']);
+$sql = $finder->getSQL();
+$finder->sql = "SELECT * FROM ($sql) AS tmp";
+d($finder->getObjects());
+```
+
 ## Closures
 
 ATTENTION: This executes a $pages->find() operation on each row, so this makes the whole query significantly slower than without using closures. Closures are a good option if you need to query complex data and only have a very limited number of rows.
