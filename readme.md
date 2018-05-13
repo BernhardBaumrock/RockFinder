@@ -12,59 +12,67 @@ In short: It is far too much work to efficiently and easily get an array of data
 
 ---
 
-## Examples
+# Basic Usage
 
-### Add multiple fields
+## getObjects()
+
+Returns an array of objects.
+
+![screenshot](screenshots/getObjects.png?raw=true "Screenshot")
+
+## getArrays()
+
+Returns an array of arrays.
+
+![screenshot](screenshots/getArrays.png?raw=true "Screenshot")
+
+## getValues()
+
+Returns a flat array of values of the given column/field.
+
+![screenshot](screenshots/getValues.png?raw=true "Screenshot")
+
+## getPages()
+
+Returns PW Page objects.
+
 ```php
-$finder = new RockFinder('template=person');
-foreach($finder->addFields(['status', 'created', 'templates_id']) as $f) {
-    d($f->getSql());
-    d($f->getObjects()[0]);
-}
+$finder = new RockFinder('template=invoice, limit=5', ['value', 'date']);
+$finder->getPages();
 ```
-Sql
-```sql
-SELECT
-  `status` AS `status`
-FROM `pages` AS `status`
 
-SELECT
-  `created` AS `created`
-FROM `pages` AS `created`
+By default uses the id column, but another one can be specified:
 
-SELECT
-  `templates_id` AS `templates_id`
-FROM `pages` AS `templates_id`
-```
-Result
-```php
-stdClass #7b6e
-status => "1"
-
-stdClass #f948
-created => "2018-04-12 15:28:55" (19)
-
-stdClass #50e0
-templates_id => "1"
-```
+![screenshot](screenshots/getPages.png?raw=true "Screenshot")
 
 ---
 
-### Closures
+# Advanced Usage
+
+## Custom SQL: Aggregations, Groupings, Distincts...
+
+You can apply any custom SQL with this technique:
+
+```php
+$finder = new RockFinder('template=invoice, limit=0', ['value', 'date']);
+$sql = $finder->getSQL();
+$finder->sql = "SELECT id, SUM(value) AS revenue, DATE_FORMAT(date, '%Y-%m') AS dategroup FROM ($sql) AS tmp GROUP BY dategroup";
+d($finder->getObjects());
+```
+
+![screenshot](screenshots/groupby.png?raw=true "Screenshot")
+
+Notice that this query takes only 239ms and uses 0.19MB of memory while it queries and aggregates more than 10.000 pages!
+
+## Closures
 
 ATTENTION: This executes a $pages->find() operation on each row, so this makes the whole query significantly slower than without using closures. Closures are a good option if you need to query complex data and only have a very limited number of rows.
 
-```php
-$finder = new RockFinder("id>0", [
-  'path' => function($page) {
-    return $page->path;
-  },
-]);
-```
+![screenshot](screenshots/closures.png?raw=true "Screenshot")
 
 ---
 
-### Multilanguage
+# Multilanguage
 
 Multilanguage is ON by default. Options:
 ```php
@@ -72,4 +80,4 @@ $finder->strictLanguage = false;
 $finder->multiLang = true;
 ```
 
-test
+tbd

@@ -118,23 +118,12 @@ class RockFinder extends WireData implements Module {
     if($this->sql) return $this->sql;
 
     $sqltimer = $this->timer('getSQL');
-    
-    // $timer = $this->timer('findIDs');
-    // $selector = $this->selector.$this->limit;
-    // $pageIDs = implode(",", $this->wire->pages->findIDs($selector));
-    // $this->timer('findIDs', $timer, $selector);
 
+    // start sql statement
     $sql = "SELECT\n  `pages`.`id` AS `id`";
     foreach($this->fields as $field) $sql .= $field->getJoinSelect();
     $sql .= "\nFROM\n  `pages`";
     foreach($this->fields as $field) $sql .= $field->getJoin();
-
-    // UPDATE: we do not use findIDs, we use the WHERE part of a regular pages->find() operation
-    // this makes it possible to use RockFinder with pw versions prior to findIDs support
-    // and also makes the sort order always be the same like in the selector (also more performant)
-    // the old WHERE statement was this:
-    // $sql .= "\nWHERE\n  `pages`.`id` IN ($pageIDs)";
-    // if($this->sort) $sql .= "\nORDER BY\n  field(`pages`.`id`, $pageIDs)";
 
     // new WHERE statement from regular pages->find() query
     $selector = new Selectors($this->selector.$this->limit);
@@ -151,13 +140,11 @@ class RockFinder extends WireData implements Module {
   /**
    * get array of objects for this finder
    */
-  public function getObjects() {
-    // return empty array if no pages where found
-
+  public function getObjects($array = null) {
     $timer = $this->timer('getObjects');
     try {
       $results = $this->database->query($this->getSql());
-      $objects = $results->fetchAll(\PDO::FETCH_OBJ);
+      $objects = $results->fetchAll($array ? \PDO::FETCH_ASSOC : \PDO::FETCH_OBJ);
     }
     catch(\PDOException $e) {
       // if the sql has an error we return an empty resultset
@@ -176,6 +163,31 @@ class RockFinder extends WireData implements Module {
     
     $this->timer('getObjects', $timer, 'Includes executeClosures' . $ajax);
     return $closures;
+  }
+
+  /**
+   * return array of arrays
+   */
+  public function getArrays() {
+    return $this->getObjects(true);
+  }
+
+  /**
+   * return a flat array of values
+   */
+  public function getValues($field) {
+    $arr = [];
+    foreach($this->getArrays() as $item) $arr[] = $item[$field];
+    return $arr;
+  }
+
+  /**
+   * return regular pw page objects
+   */
+  public function getPages($field = 'id') {
+    $pages = new PageArray();
+    foreach($this->getValues($field) as $id) $pages->add($this->pages->get($id));
+    return $pages;
   }
 
   /**
