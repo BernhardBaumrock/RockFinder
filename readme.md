@@ -70,6 +70,18 @@ ATTENTION: This executes a $pages->find() operation on each row, so this makes t
 
 ![screenshot](screenshots/closures.png?raw=true "Screenshot")
 
+## Querying more complex fields (page reference fields, repeaters, etc)
+
+Querying those fields is not an easy task in SQL because the field's data is spread across several database tables. This data then needs to be joined and you need to make sure that the sort order stays untouched. RockFinder takes care of all that and makes the final query very easy.
+
+See this example of a page reference field called `cats`:
+
+![screenshot](screenshots/pageField.png?raw=true "Screenshot")
+
+The example also shows how you can control the returned content (for example changing the separator symbol). For every supported fieldtype there is a corresponding readme-file in the `fieldTypes` folder of this repo.
+
+You can create custom fieldType-queries by placing a file in `/site/assets/RockFinder`. This makes this module very versatile and you should be able to handle even the most complex edge-case.
+
 ---
 
 # Multilanguage
