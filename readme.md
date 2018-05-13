@@ -56,6 +56,15 @@ You can apply any custom SQL with this technique:
 ```php
 $finder = new RockFinder('template=invoice, limit=0', ['value', 'date']);
 $sql = $finder->getSQL();
+$finder->sql = "SELECT * FROM ($sql) AS tmp";
+d($finder->getObjects());
+```
+
+Real example:
+
+```php
+$finder = new RockFinder('template=invoice, limit=0', ['value', 'date']);
+$sql = $finder->getSQL();
 $finder->sql = "SELECT id, SUM(value) AS revenue, DATE_FORMAT(date, '%Y-%m') AS dategroup FROM ($sql) AS tmp GROUP BY dategroup";
 d($finder->getObjects());
 ```
@@ -64,14 +73,6 @@ d($finder->getObjects());
 
 Notice that this query takes only 239ms and uses 0.19MB of memory while it queries and aggregates more than 10.000 pages!
 
-The most basic query would be this one (not doing anything, of course - just for demonstration):
-
-```php
-$finder = new RockFinder('template=invoice, limit=0', ['value', 'date']);
-$sql = $finder->getSQL();
-$finder->sql = "SELECT * FROM ($sql) AS tmp";
-d($finder->getObjects());
-```
 
 ## Closures
 
