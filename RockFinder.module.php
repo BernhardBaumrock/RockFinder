@@ -119,18 +119,27 @@ class RockFinder extends WireData implements Module {
 
     $sqltimer = $this->timer('getSQL');
 
+    // get sql statement of pages->find
+    $selector = new Selectors($this->selector.$this->limit);
+    $pf = new PageFinder();
+    $query = $pf->find($selector, ['returnQuery' => true]);
+    $query['select'] = ['pages.id']; // we only need the id
+    $pwfinder = $query->prepare()->queryString;
+
     // start sql statement
     $sql = "SELECT\n  `pages`.`id` AS `id`";
     foreach($this->fields as $field) $sql .= $field->getJoinSelect();
     $sql .= "\nFROM\n  `pages`";
     foreach($this->fields as $field) $sql .= $field->getJoin();
+    $rockfinder = $sql;
 
-    // new WHERE statement from regular pages->find() query
-    $selector = new Selectors($this->selector.$this->limit);
-    $pf = new PageFinder();
-    $finderSql = $pf->find($selector, ['returnQuery' => true])->prepare()->queryString;
-    $where = substr($finderSql, strpos($finderSql, 'WHERE'));
-    $sql .= "\n".$where;
+    // join both queries
+    $sql = "SELECT `rockfinder`.* FROM";
+    $sql .= "\n\n /* original pw query */";
+    $sql .= "\n($pwfinder) as `pwfinder`";
+    
+    $sql .= "\n\n /* join rockfinder */";
+    $sql .= "\nLEFT JOIN ($rockfinder) AS `rockfinder` ON `pwfinder`.`id` = `rockfinder`.`id`";
 
     $this->timer('getSQL', $sqltimer, "<textarea class='noAutosize' rows=5>$sql</textarea>");
     $this->sql = $sql;
