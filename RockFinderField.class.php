@@ -74,10 +74,7 @@ abstract class RockFinderField extends WireData {
     // if the field does not support multilang return the data column
     $field = $this->fields->get($column);
     if(!$field) throw new WireException("Field $column does not exist");
-    if(!$field->type instanceof FieldtypeLanguageInterface) {
-      bd('jep');
-      return "`$column`.`data`";
-    }
+    if(!$field->type instanceof FieldtypeLanguageInterface) return "`$column`.`data`";
     
     // multilang is ON, check for the user's language
     $lang = $this->wire->user->language;
