@@ -40,7 +40,15 @@ class RockFinder extends WireData implements Module {
   /**
    * add a field to the finder
    */
-  public function addField($name, $columns = [], $type = null, $alias = null) {
+  public function addField($name, $columns = [], $options = []) {
+    $defaults = [
+      'type' => null,
+      'alias' => null,
+    ];
+    $options = array_merge($defaults, $options);
+    $type = $options['type'];
+    $alias = $options['alias'];
+
     // create new field
     // if the type is set, use this type
     if(!$type) {
