@@ -70,6 +70,10 @@ class RockFinder extends WireData implements Module {
     }
 
     $class = "\ProcessWire\RockFinderField".ucfirst($type);
+    if(!class_exists($class)) {
+      $this->warning("Class $class not found for field $name, using RockFinderFieldText");
+      $class = "\ProcessWire\RockFinderFieldText";
+    }
     $field = new $class($name, $columns, $type);
     if($alias) $field->alias = $alias;
     
@@ -144,8 +148,11 @@ class RockFinder extends WireData implements Module {
     $sql .= "\n\n /* original pw query */";
     $sql .= "\n($pwfinder) as `pwfinder`";
     
-    $sql .= "\n\n /* join rockfinder */";
-    $sql .= "\nLEFT JOIN ($rockfinder) AS `rockfinder` ON `pwfinder`.`id` = `rockfinder`.`id`";
+    $sql .= "\n\nLEFT JOIN (";
+    $sql .= "\n/* rockfinder */\n";
+    $sql .= $rockfinder;
+    $sql .= "\n/* end rockfinder */";
+    $sql .= "\n) AS `rockfinder` ON `pwfinder`.`id` = `rockfinder`.`id`";
 
     $this->timer('getSQL', $sqltimer, "<textarea class='noAutosize' rows=5>$sql</textarea>");
     $this->sql = $sql;
