@@ -48,23 +48,25 @@ class ProcessRockFinder extends Process {
     $code = eval(str_replace($search, $replace, $code));
 
     $f = $this->modules->get('InputfieldRockGrid');
-    $f->type = 'RockGrid';
-    $f->label = 'Result';
-    $f->name = 'ProcessRockFinderResult';
-    $f->debug = true;
-    if($code instanceof RockFinder) {
-      $finder = $code;
-      $finder->debug = true;
-      // get code of this finder
-      $code = $finder->getSQL();
+    if($f) {
+      $f->type = 'RockGrid';
+      $f->label = 'Result';
+      $f->name = 'ProcessRockFinderResult';
+      $f->debug = true;
+      if($code instanceof RockFinder) {
+        $finder = $code;
+        $finder->debug = true;
+        // get code of this finder
+        $code = $finder->getSQL();
 
-      // enable debugging now the initial sql request is done
-      $f->setData($finder);
+        // enable debugging now the initial sql request is done
+        $f->setData($finder);
+      }
+      else {
+        $f->sql = $code;
+      }
+      $form->add($f);
     }
-    else {
-      $f->sql = $code;
-    }
-    $form->add($f);
 
     $this->config->styles->add('//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css');
     $this->config->scripts->add('//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js');
