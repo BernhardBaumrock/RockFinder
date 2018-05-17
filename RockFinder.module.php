@@ -99,12 +99,10 @@ class RockFinder extends WireData implements Module {
       }
 
       // add thid field to the array
-      $arr[] = $this->addField(
-        $field,
-        null,
-        $type,
-        $alias
-      );
+      $arr[] = $this->addField($field, null, [
+        'type' => $type,
+        'alias' => $alias
+      ]);
     }
     return $arr;
   }
