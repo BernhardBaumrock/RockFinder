@@ -160,6 +160,21 @@ class RockFinder extends WireData implements Module {
   }
 
   /**
+   * load sql from file
+   */
+  public function loadSQL($filename) {
+    if(!is_file($filename)) {
+      $filename = $this->config->paths->assets . 'RockFinder/' . pathinfo($filename, PATHINFO_FILENAME) . '.sql';
+    }
+    if(!is_file($filename)) throw new WireException("Invalid filename $filename");
+    $sql = file_get_contents($filename);
+    $finderSql = $this->getSQL();
+    $sql = str_replace('@sql', "\n\n($finderSql)\n\n", $sql);
+    $this->sql = $sql;
+    return $this;
+  }
+
+  /**
    * get array of objects for this finder
    */
   public function getObjects($array = null) {
