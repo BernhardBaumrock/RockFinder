@@ -45,11 +45,22 @@ abstract class RockFinderField extends WireData {
    * return the field alias for given column
    */
   protected function fieldAlias($column) {
-    // bug: custom fieldnames do not work like this
+
+    /**
+     * bug: this does not work for custom fieldnames but makes joined pages with custom alias work
+     * $finder = new RockFinder("template=person, isFN=1, has_parent=7888", [
+     *     'lang' => 'bla', // does not work
+     *     'forename',
+     *     'surname',
+     *   ]);
+     *   $finder->addField('report', ['pdfs']);
+     *   $finder->addField('report', ['charts'], ['alias'=>'test']);
+     */
     $alias = $column == 'data'
-      ? "{$this->name}"
-      : "{$this->name}{$this->siblingseparator}$column"
+      ? "{$this->alias}"
+      : "{$this->alias}{$this->siblingseparator}$column"
       ;
+
     return $alias;
   }
 

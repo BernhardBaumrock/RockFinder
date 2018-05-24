@@ -1,4 +1,17 @@
 <?php namespace ProcessWire;
+
+
+    /**
+     * bug: this does not work for custom fieldnames but makes joined pages with custom alias work
+     * $finder = new RockFinder("template=person, isFN=1, has_parent=7888", [
+     *     'lang' => 'bla', // does not work
+     *     'forename',
+     *     'surname',
+     *   ]);
+     *   $finder->addField('report', ['pdfs']);
+     *   $finder->addField('report', ['charts'], ['alias'=>'test']);
+     */
+    
 class RockFinderFieldPage extends RockFinderField {
   public $separator = ',';
   
@@ -28,6 +41,9 @@ class RockFinderFieldPage extends RockFinderField {
    * would lead to multiple id entries in the resulting column when a joined field has multiple entries
    * for example if we join the page with id 123 having a file field with files 1.jpg and 2.jpg the result would be:
    * 123,123 | 1.jpg,2.jpg
+   * 
+   * bug: joining a page with 2 fields having multiple items but different counts (eg filefield with 2 files
+   * and files field with 4 files) makes the concat result in wrong returns
    */
   public function getSqlWithColumns() {
     $sql = "SELECT";
@@ -63,9 +79,9 @@ class RockFinderFieldPage extends RockFinderField {
     $sql = '';
     foreach($this->columns as $i=>$column) {
       if($i==0)
-        $sql .= ",\n  `$this->alias`.`{$this->fieldAlias($column)}` AS `{$this->fieldAlias($column)}`";
+        $sql .= ",\n  `$this->alias`.`{$this->fieldAlias($column)}` AS `{$this->fieldAlias($column)}` /* hier */";
       else
-        $sql .= ",\n  `$this->alias`.`$column` AS `{$this->fieldAlias($column)}`";
+        $sql .= ",\n  `$this->alias`.`$column` AS `{$this->fieldAlias($column)}` /* hier2 */";
     }
     return $sql;
   }
