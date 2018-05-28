@@ -23,6 +23,9 @@ class RockFinder extends WireData implements Module {
   // only create the query once
   public $sql;
 
+  // array of custom select statements
+  private $selects = [];
+
   public function __construct($selector = '', $fields = []) {
     $this->selector = $selector;
 
@@ -83,6 +86,15 @@ class RockFinder extends WireData implements Module {
   }
 
   /**
+   * add a select statement to SQL query
+   * if you are using this method to aggregate data (such as sum() etc)
+   * note that this might not be as efficient as doing a sum() and group by ... on the resulting SQL
+   */
+  public function addSelects($statements = []) {
+    $this->selects = array_merge($this->selects, $statements);
+  }
+
+  /**
    * add multiple fields via array
    */
   public function addFields($fields) {
@@ -139,6 +151,12 @@ class RockFinder extends WireData implements Module {
     // start sql statement
     $sql = "SELECT\n  `pages`.`id` AS `id`";
     foreach($this->fields as $field) $sql .= $field->getJoinSelect();
+
+    // add all select statements
+    foreach($this->selects as $alias=>$statement) {
+      $sql .= ",\n  ($statement) AS $alias";
+    }
+
     $sql .= "\nFROM\n  `pages`";
     foreach($this->fields as $field) $sql .= $field->getJoin();
     $rockfinder = $sql;
@@ -294,6 +312,7 @@ class RockFinder extends WireData implements Module {
     $info['fields'] = $this->fields;
     $info['closures'] = $this->closures;
     $info['debuginfo'] = $this->debuginfo;
+    $info['selects'] = $this->selects;
     return $info;
   }
 }
