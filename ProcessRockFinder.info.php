@@ -13,10 +13,10 @@
 $info = array(
   'title' => 'ProcessRockFinder',
   'summary' => 'ProcessModule to test RockFinders',
-  'version' => 1,
+  'version' => 2,
   'author' => 'Bernhard Baumrock, baumrock.com',
   'icon' => 'bolt',
-  // 'requires' => ['FieldtypeRockGrid'],
+  'requires' => ['RockFinder'],
 
   'page' => array(
     'name' => 'rockfindertester',

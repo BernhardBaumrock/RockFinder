@@ -6,4 +6,5 @@ $info = [
   'singular' => true, 
   'autoload' => false, 
   'icon' => 'search',
+  'installs' => ['ProcessRockFinder'],
 ];

@@ -32,10 +32,13 @@ class ProcessRockFinder extends Process {
         'tabSize'             => 2,
         'printMarginColumn'   => false,
       ));
-      $ace->notes = "Execute on CTRL+ENTER or ALT+ENTER";
-      $ace->notes .= "\nThe code must return either an SQL statement or a RockFinder instance";
       $f = $ace;
     }
+    
+    $f->notes = "Execute on CTRL+ENTER or ALT+ENTER";
+    $f->notes .= "\nThe code must return either an SQL statement or a RockFinder instance";
+    if(!$ace) $f->notes .= "\nYou can install 'InputfieldAceExtended' for better code editing";
+    
     $f->name = 'code';
     $f->value = $code = $this->input->post->code ?: file_get_contents($this->config->paths->assets . 'RockGrid/tester.txt');
     $f->label = 'Code to execute';
