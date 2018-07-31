@@ -7,4 +7,5 @@ $info = [
   'autoload' => false, 
   'icon' => 'search',
   'installs' => ['ProcessRockFinder'],
+  'requires' => ['ProcessWire>=3.0.97'],
 ];
