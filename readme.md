@@ -73,6 +73,8 @@ d($finder->getObjects());
 
 Notice that this query takes only 239ms and uses 0.19MB of memory while it queries and aggregates more than 10.000 pages!
 
+You can also add custom SQL queries like this: https://processwire.com/talk/topic/19226-rockfinder-highly-efficient-and-flexible-sql-finder-module/?do=findComment&comment=167804 to easily do "reverse queries", for example show all projects that have the current page selected in a page-reference-field.
+
 
 ## Closures
 

@@ -66,6 +66,7 @@ class ProcessRockFinder extends Process {
         $f->setData($finder);
       }
       else {
+        // populate sql property of finder
         $f->sql = $code;
       }
       $form->add($f);

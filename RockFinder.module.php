@@ -66,6 +66,11 @@ class RockFinder extends WireData implements Module {
         switch(true) {
           case $type instanceof FieldtypeRepeater: $type = 'repeater'; break;
           case $type instanceof FieldtypeFile: $type = 'file'; break;
+
+          // for options fields we use the "file" type
+          // if multiple options are set this will return all options as string
+          case $type instanceof FieldtypeOptions: $type = 'file'; break;
+
           case $type instanceof FieldtypePage: $type = 'page'; break;
           default: $type = 'text'; break;
         }
