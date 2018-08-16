@@ -79,9 +79,9 @@ class RockFinderFieldPage extends RockFinderField {
     $sql = '';
     foreach($this->columns as $i=>$column) {
       if($i==0)
-        $sql .= ",\n  `$this->alias`.`{$this->fieldAlias($column)}` AS `{$this->fieldAlias($column)}` /* hier */";
+        $sql .= ",\n  `$this->alias`.`{$this->fieldAlias($column)}` AS `{$this->fieldAlias($column)}`";
       else
-        $sql .= ",\n  `$this->alias`.`$column` AS `{$this->fieldAlias($column)}` /* hier2 */";
+        $sql .= ",\n  `$this->alias`.`$column` AS `{$this->fieldAlias($column)}`";
     }
     return $sql;
   }
