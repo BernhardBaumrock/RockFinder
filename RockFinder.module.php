@@ -26,6 +26,10 @@ class RockFinder extends WireData implements Module {
   // array of custom select statements
   private $selects = [];
 
+  // prefix name that is used for this finder when joining it to another finder
+  private $joinedFinders = [];
+  public $joinPrefix;
+
   public function __construct($selector = '', $fields = []) {
     $this->selector = $selector;
 
@@ -151,11 +155,18 @@ class RockFinder extends WireData implements Module {
     $pf = new PageFinder();
     $query = $pf->find($selector, ['returnQuery' => true]);
     $query['select'] = ['pages.id']; // we only need the id
-    $pwfinder = $query->prepare()->queryString;
+    $pwfinder = $this->indent($query->prepare()->queryString, 4);
 
     // start sql statement
     $sql = "SELECT\n  `pages`.`id` AS `id`";
     foreach($this->fields as $field) $sql .= $field->getJoinSelect();
+
+    // add the join prefix if it is set
+    $joinPrefix = '';
+    if($this->joinPrefix) {
+      $joinPrefix = "{$this->joinPrefix}_";
+      $sql = str_replace('AS `', "AS `$joinPrefix", $sql);
+    }
 
     // add all select statements
     foreach($this->selects as $alias=>$statement) {
@@ -166,20 +177,77 @@ class RockFinder extends WireData implements Module {
     foreach($this->fields as $field) $sql .= $field->getJoin();
     $rockfinder = $sql;
 
+    // debug
+    bdb($this->joinedFinders);
+
     // join both queries
-    $sql = "SELECT `rockfinder`.* FROM";
-    $sql .= "\n\n /* original pw query */";
-    $sql .= "\n($pwfinder) as `pwfinder`";
+    $sql = "SELECT";
+    $sql .= "\n    `rockfinder`.*";
+    $sql .= $this->joinedFinderSelects();
+    $sql .= "\nFROM";
+    $sql .= "\n    /* original pw query */";
+    $sql .= "\n    ($pwfinder) as `pwfinder`";
     
-    $sql .= "\n\nLEFT JOIN (";
-    $sql .= "\n/* rockfinder */\n";
-    $sql .= $rockfinder;
+    $sql .= "\n\n/* rockfinder */";
+    $sql .= "\nLEFT JOIN (";
+    $sql .= "    " . $this->indent($rockfinder, 4);
+    $sql .= "\n) AS `rockfinder` ON `pwfinder`.`id` = `rockfinder`.`{$joinPrefix}id`";
     $sql .= "\n/* end rockfinder */";
-    $sql .= "\n) AS `rockfinder` ON `pwfinder`.`id` = `rockfinder`.`id`";
+
+    $sql .= $this->joinedFinderJoins();
 
     $this->timer('getSQL', $sqltimer, "<textarea class='noAutosize' rows=5>$sql</textarea>");
     $this->sql = $sql;
     return $sql;
+  }
+
+  /**
+   * return select statements for all joined finders
+   */
+  private function joinedFinderSelects() {
+    if(!count($this->joinedFinders)) return;
+
+    $sql = "\n    /* joined finders */";
+    foreach($this->joinedFinders as $finder) {
+      $fields = $finder[1];
+      $finder = $finder[0];
+      $sql .= "\n    ,`$finder->joinPrefix`.*";
+    }
+    return $sql;
+  }
+
+  /**
+   * return join statements for all joined finders
+   */
+  private function joinedFinderJoins() {
+    if(!count($this->joinedFinders)) return;
+
+    $sql = "\n\n/* joinedFinderJoins */";
+    foreach($this->joinedFinders as $finder) {
+      foreach($finder[1] as $field1=>$field2) {}
+      bd($field1, 'f1');
+      bd($field2, 'f2');
+
+      $finder = $finder[0];
+      $sql .= "\nLEFT JOIN (";
+      $sql .= "\n    " . $this->indent($finder->getSQL(), 4);
+      $sql .= "\n) AS `" . $finder->joinPrefix . "`";
+      $sql .= " ON `$finder->joinPrefix`.`{$finder->joinPrefix}_$field1` = `rockfinder`.`$field2`";
+
+      /**
+       * das problem ist, dass er bei den gejointen findern die felder nicht findet, weil die felder
+       * alle ein prefix haben. dieses prefix ist leider kacke und das muss ich anders umsetzen
+       * TODO für morgen...
+       */
+    }
+    return $sql;
+  }
+
+  /**
+   * indent all lines of given string
+   */
+  private function indent($str, $chars) {
+    return str_replace("\n", "\n".str_repeat(" ",$chars), $str);
   }
 
   /**
@@ -286,6 +354,34 @@ class RockFinder extends WireData implements Module {
     return $arr;
   }
 
+  /**
+   * join another finder
+   */
+  public function join($finder, $prefix, $fields) {
+    // parameter checks
+    if(!$finder instanceof RockFinder) {
+      throw new WireException('First parameter needs to be a RockFinder instance');
+    }
+    if(!is_string($prefix)) throw new WireException('Second parameter needs to be a string');
+    if(!is_array($fields)) throw new WireException('Third parameter needs to be an array');
+    if(count($fields)!==1) throw new WireException('Third parameter needs to be an array with one key/value pair');
+    foreach($fields as $field1 => $field2) {
+      if(!is_string($field1) OR !is_string($field2)) {
+        throw new WireException('Third parameter needs to be an array with one key/value pair');
+      }
+    }
+
+    // set the join prefix for the joined finder
+    $finder->joinPrefix = $prefix;
+
+    // add this join to the array
+    $this->joinedFinders[] = [$finder, $fields];
+
+    // bd($field1, 'field1');
+    // bd($field2, 'field2');
+
+    return $this->getSQL();
+  }
 
   /**
    * start timer or add it to debuginfo

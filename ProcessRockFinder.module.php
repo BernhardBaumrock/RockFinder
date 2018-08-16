@@ -78,7 +78,7 @@ class ProcessRockFinder extends Process {
       'type' => 'markup',
       'value' => "<pre><code>$code</code></pre>",
       'label' => 'Resulting SQL',
-      'collapsed' => Inputfield::collapsedYes,
+      // 'collapsed' => Inputfield::collapsedYes,
     ]);
     
     $form->add([
