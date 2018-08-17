@@ -76,6 +76,10 @@ finder) but also providing the finder-alias and the fieldname manually.
 
 You have to use this syntax for your "fieldname": `{alias}.{alias}_{fieldname}`.
 
+In this example we are joining projects (finder1) and their related clients
+(single page reference field of project) and then we join the referral contact
+of the project's client based on the "camefrom" id of finder2:
+
 ```php
 $finder1 = new RockFinder('template=rockproject', [
   'title',
