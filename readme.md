@@ -49,6 +49,57 @@ By default uses the id column, but another one can be specified:
 
 # Advanced Usage
 
+## Joins
+
+It is possible to join multiple finders. This is useful whenever you have single
+page reference fields and want to show properties of the referenced page. A simple
+example could be this join:
+
+```php
+$finder1 = new RockFinder('template=rockproject', ['title', 'rockproject_client']);
+$finder2 = new RockFinder('template=rockcontact', ['title']);
+
+// join finder
+$finder1->join($finder2, 'contact', ['id' => 'rockproject_client']);
+```
+
+The syntac is like this:
+
+```php
+$baseFinder->join($joinedFinder, 'joinedFinderAlias', ['fieldNameOfJoinedFinder' => 'fieldNameOfBaseFinder']);
+```
+
+A more advanced example is this one, joining three finders. Notice that `$finder3`
+is manually joined on a column of `$finder2` (having alias `contact`). You can
+achieve this by providing not only the field name (then it would join to the base
+finder) but also providing the finder-alias and the fieldname manually.
+
+You have to use this syntax for your "fieldname": `{alias}.{alias}_{fieldname}`.
+
+```php
+$finder1 = new RockFinder('template=rockproject', [
+  'title',
+  'rockproject_client',
+]);
+
+$finder2 = new RockFinder('template=rockcontact', [
+  'title',
+  'rockcontact_camefrom',
+]);
+
+$finder3 = new RockFinder('template=rockcontact', [
+  'title',
+]);
+
+// join finders
+$finder1->join($finder2, 'contact', ['id' => 'rockproject_client']);
+$finder1->join($finder3, 'referral', ['id' => 'contact.contact_rockcontact_camefrom']);
+
+return $finder1;
+```
+
+![complex join](screenshots/join.png)
+
 ## Custom SQL: Aggregations, Groupings, Distincts...
 
 You can apply any custom SQL with this technique:

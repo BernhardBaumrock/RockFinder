@@ -177,9 +177,6 @@ class RockFinder extends WireData implements Module {
     foreach($this->fields as $field) $sql .= $field->getJoin();
     $rockfinder = $sql;
 
-    // debug
-    bdb($this->joinedFinders);
-
     // join both queries
     $sql = "SELECT";
     $sql .= "\n    `rockfinder`.*";
@@ -221,24 +218,30 @@ class RockFinder extends WireData implements Module {
    */
   private function joinedFinderJoins() {
     if(!count($this->joinedFinders)) return;
+    bd($this->joinedFinders);
 
     $sql = "\n\n/* joinedFinderJoins */";
     foreach($this->joinedFinders as $finder) {
-      foreach($finder[1] as $field1=>$field2) {}
-      bd($field1, 'f1');
-      bd($field2, 'f2');
+      foreach($finder[1] as $field1=>$field2) {} // assign key/value
 
+      // create sql statement
       $finder = $finder[0];
+      $sql .= "\n\n/* join finder {$finder->joinPrefix} */";
       $sql .= "\nLEFT JOIN (";
       $sql .= "\n    " . $this->indent($finder->getSQL(), 4);
       $sql .= "\n) AS `" . $finder->joinPrefix . "`";
-      $sql .= " ON `$finder->joinPrefix`.`{$finder->joinPrefix}_$field1` = `rockfinder`.`$field2`";
 
-      /**
-       * das problem ist, dass er bei den gejointen findern die felder nicht findet, weil die felder
-       * alle ein prefix haben. dieses prefix ist leider kacke und das muss ich anders umsetzen
-       * TODO für morgen...
-       */
+      // create ON clause
+      // if $field2 has a dot the join is performed on an already joined table
+      // $finder1->join($finder2, 'contact', ['id' => 'client']);
+      // $finder1->join($finder3, 'referrer', ['id' => 'contact.contact_camefrom']);
+      if(strpos($field2, '.')) {
+        $field2 = str_replace('.', '`.`', $field2);
+        $sql .= " ON `$finder->joinPrefix`.`{$finder->joinPrefix}_$field1` = `$field2`";
+      }
+      else {
+        $sql .= " ON `$finder->joinPrefix`.`{$finder->joinPrefix}_$field1` = `rockfinder`.`$field2`";
+      }
     }
     return $sql;
   }
@@ -358,6 +361,8 @@ class RockFinder extends WireData implements Module {
    * join another finder
    */
   public function join($finder, $prefix, $fields) {
+    bd('join');
+
     // parameter checks
     if(!$finder instanceof RockFinder) {
       throw new WireException('First parameter needs to be a RockFinder instance');
@@ -373,14 +378,9 @@ class RockFinder extends WireData implements Module {
 
     // set the join prefix for the joined finder
     $finder->joinPrefix = $prefix;
-
-    // add this join to the array
+    
+    // add join to array
     $this->joinedFinders[] = [$finder, $fields];
-
-    // bd($field1, 'field1');
-    // bd($field2, 'field2');
-
-    return $this->getSQL();
   }
 
   /**
