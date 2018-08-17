@@ -154,7 +154,3 @@ Multilanguage is ON by default. Options:
 $finder->strictLanguage = false;
 $finder->multiLang = true;
 ```
-
-tbd
-
-test #2
