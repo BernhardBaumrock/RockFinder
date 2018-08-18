@@ -218,7 +218,6 @@ class RockFinder extends WireData implements Module {
    */
   private function joinedFinderJoins() {
     if(!count($this->joinedFinders)) return;
-    bd($this->joinedFinders);
 
     $sql = "\n\n/* joinedFinderJoins */";
     foreach($this->joinedFinders as $finder) {
@@ -361,8 +360,6 @@ class RockFinder extends WireData implements Module {
    * join another finder
    */
   public function join($finder, $prefix, $fields) {
-    bd('join');
-
     // parameter checks
     if(!$finder instanceof RockFinder) {
       throw new WireException('First parameter needs to be a RockFinder instance');
