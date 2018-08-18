@@ -13,7 +13,7 @@
 $info = array(
   'title' => 'ProcessRockFinder',
   'summary' => 'ProcessModule to test RockFinders',
-  'version' => 2,
+  'version' => 3,
   'author' => 'Bernhard Baumrock, baumrock.com',
   'icon' => 'bolt',
   'requires' => ['RockFinder'],

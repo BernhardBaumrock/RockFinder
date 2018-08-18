@@ -10,14 +10,22 @@ class ProcessRockFinder extends Process {
 	}
 
   /**
-   * list all projects
+   * execute the tester interface
    */
   public function ___execute() {
     $form = $this->modules->get('InputfieldForm');
 
+    // if reset parameter is set, add comments to tester.txt file
+    $file = $this->config->paths->assets . 'RockGrid/tester.txt';
+    if($this->input->get->reset) {
+      $str = file_get_contents($file);
+      file_put_contents($file, str_replace("\n", "\n// ", $str));
+      $this->session->redirect('./');
+    }
+
     // if tester.txt does not exist create it from sample file
-    if(!is_file($this->config->paths->assets . 'RockGrid/tester.txt')) {
-      $this->files->copy(__DIR__ . '/exampleTester.php', $this->config->paths->assets . 'RockGrid/tester.txt');
+    if(!is_file($file)) {
+      $this->files->copy(__DIR__ . '/exampleTester.php', $file);
     }
 
     $f = $this->modules->get('InputfieldTextarea');
