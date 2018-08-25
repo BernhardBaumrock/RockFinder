@@ -324,7 +324,6 @@ class RockFinder extends WireData implements Module {
    * execute closures
    */
   private function executeClosures($objects) {
-
     // if limit is set return the objects
     if($this->limit != '') return $objects;
 
@@ -333,10 +332,17 @@ class RockFinder extends WireData implements Module {
 
     // otherwise loop all objects and execute closures
     foreach($this->closures as $column => $closure) {
-      foreach($objects as $row) {
-        // find the column and execute closure
-        $page = $this->pages->get($row->id);
-        $row->{$column} = $closure->__invoke($page);
+      foreach($objects as $i=>$row) {
+        if(is_array($row)) {
+          // initial request was getArrays()
+          $page = $this->pages->get($row['id']);
+          $objects[$i][$column] = $closure->__invoke($page);
+        }
+        else {
+          // initial request was getObjects()
+          $page = $this->pages->get($row->id);
+          $row->{$column} = $closure->__invoke($page);
+        }
       }
     }
     return $objects;
