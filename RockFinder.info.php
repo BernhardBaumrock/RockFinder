@@ -1,7 +1,7 @@
 <?php
 $info = [
   'title' => 'RockFinder',
-  'version' => '1.0.8',
+  'version' => '1.0.9',
   'summary' => 'Highly Efficient and Flexible SQL Finder Module to return page data without loading PW pages into memory',
   'singular' => true, 
   'autoload' => false, 

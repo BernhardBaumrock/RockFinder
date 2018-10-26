@@ -270,11 +270,25 @@ class RockFinder extends WireData implements Module {
   /**
    * get array of objects for this finder
    */
-  public function getObjects($array = null) {
+  public function getObjects($type = null) {
     $timer = $this->timer('getObjects');
     try {
       $results = $this->database->query($this->getSql());
-      $objects = $results->fetchAll($array ? \PDO::FETCH_ASSOC : \PDO::FETCH_OBJ);
+
+      // check for the return type
+      if($type == 'WireData') {
+        // return a wirearray of wiredata objects
+        $objects = $results->fetchAll(\PDO::FETCH_CLASS, '\ProcessWire\WireData');
+        $objects = (new WireArray())->import($objects);
+      }
+      elseif($type == 'array') {
+        // return array of plain associative php arrays
+        $objects = $results->fetchAll(\PDO::FETCH_ASSOC);
+      }
+      else {
+        // no type set, return stdClass objects
+        $objects = $results->fetchAll(\PDO::FETCH_OBJ);
+      }
     }
     catch(\PDOException $e) {
       // if the sql has an error we return an empty resultset
@@ -299,7 +313,14 @@ class RockFinder extends WireData implements Module {
    * return array of arrays
    */
   public function getArrays() {
-    return $this->getObjects(true);
+    return $this->getObjects('array');
+  }
+
+  /**
+   * return a WireArray of WireData objects
+   */
+  public function getWireArray() {
+    return $this->getObjects('WireData');
   }
 
   /**
