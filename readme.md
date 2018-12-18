@@ -104,6 +104,30 @@ return $finder1;
 
 ![complex join](screenshots/join.png)
 
+## Filters & Access Control
+
+You can filter the resulting rows by custom callbacks:
+
+```php
+// show only rows that have an id > 3
+$finder = new RockFinder('id>0, limit=5', ['title', 'status']);
+$finder->filter(function($row) {
+  return $row->id > 3;
+});
+```
+![img](https://i.imgur.com/HM5fwAS.png)
+
+You can also use these filters for showing only editable pages by the current user. Be careful! This will load pages into memory and you will lose the performance benefits of RockFinder / direct SQL queries.
+
+```php
+$finder->filter(function($row) {
+  $page = $this->wire->pages->get($row->id);
+  return $page->editable();
+});
+```
+
+One thing to mention is that you can apply these filters BEFORE or AFTER closures have been applied. If you apply them BEFORE executing the closures it might be a little more performant (because closures will not be executed for rows that have been removed by the filter), but you will not have access to columns that are populated via closures (like page path).
+
 ## Custom SQL: Aggregations, Groupings, Distincts...
 
 You can apply any custom SQL with this technique:

@@ -9,6 +9,8 @@ class RockFinder extends WireData implements Module {
   private $selector;
   private $fields = [];
   private $closures = [];
+  private $filtersAfter = [];
+  private $filtersBefore = [];
 
   // here we can set a limit to use for the selector
   // this is needed for getDataColumns to only query one row for better performance
@@ -281,10 +283,20 @@ class RockFinder extends WireData implements Module {
       // this is the case when no pages where found or the sql is not correct
       return [];
     }
+    $result = $objects;
 
+    // execute filters before executing closures
+    // this might be more performant then executing filters after all closures
+    $result = $this->executeFilters($result);
+
+    // execute closures
     $clstimer = $this->timer('executeClosures');
-    $closures = $this->executeClosures($objects);
+    $result = $this->executeClosures($result);
     $this->timer('executeClosures', $clstimer);
+
+    // execute filters after closures have been executed
+    // sometimes it might be necessary to filter on values executed by closures
+    $result = $this->executeFilters($result, 1);
 
     $ajax = $this->ajax
       ? ', AJAX is turned ON and not tracked'
@@ -292,7 +304,7 @@ class RockFinder extends WireData implements Module {
       ;
     
     $this->timer('getObjects', $timer, 'Includes executeClosures' . $ajax);
-    return $closures;
+    return $result;
   }
 
   /**
@@ -323,20 +335,17 @@ class RockFinder extends WireData implements Module {
   /**
    * execute closures
    */
-  private function executeClosures($objects) {
+  private function executeClosures($rows) {
     // if limit is set return the objects
-    if($this->limit != '') return $objects;
+    if($this->limit != '') return $rows;
 
-    // if no closures exist return the objects
-    if(!count($this->closures)) return $objects;
-
-    // otherwise loop all objects and execute closures
+    // if closures exist execute them
     foreach($this->closures as $column => $closure) {
-      foreach($objects as $i=>$row) {
+      foreach($rows as $i=>$row) {
         if(is_array($row)) {
           // initial request was getArrays()
           $page = $this->pages->get($row['id']);
-          $objects[$i][$column] = $closure->__invoke($page);
+          $rows[$i][$column] = $closure->__invoke($page);
         }
         else {
           // initial request was getObjects()
@@ -345,7 +354,51 @@ class RockFinder extends WireData implements Module {
         }
       }
     }
-    return $objects;
+
+    return $rows;
+  }
+
+  /**
+   * execute filters
+   *
+   * @param array $rows
+   * @param bool $after
+   * @return void
+   */
+  private function executeFilters($rows, $after = false) {
+    $filters = $after ? $this->filtersAfter : $this->filtersBefore;
+    foreach($filters as $filter) {
+      foreach($rows as $i=>$row) {
+        // we always send rows as objects to filter functions
+        $rowobject = (object)$row;
+        if($filter->__invoke($rowobject) == false) unset($rows[$i]);
+      }
+    }
+
+    return $rows;
+  }
+
+  /**
+   * add filter to this finder
+   *
+   * @param callable $callback
+   * @param boolean $after
+   * @return void
+   */
+  public function filter($callback, $after = false) {
+    // add callback to filters array
+    if($after) $this->filtersAfter[] = $callback;
+    else $this->filtersBefore[] = $callback;
+  }
+
+  /**
+   * shortcut
+   *
+   * @param callable $callback
+   * @return void
+   */
+  public function filterAfter($callback) {
+    $this->filter($callback, true);
   }
   
   /**
