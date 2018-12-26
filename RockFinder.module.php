@@ -152,12 +152,12 @@ class RockFinder extends WireData implements Module {
 
     $sqltimer = $this->timer('getSQL');
 
-    // get sql statement of pages->find
+        // get sql statement of pages->find
     $selector = new Selectors($this->selector.$this->limit);
-    $pf = new PageFinder();
-    $query = $pf->find($selector, ['returnQuery' => true]);
-    $query['select'] = ['pages.id']; // we only need the id
-    $pwfinder = $this->indent($query->prepare()->queryString, 4);
+    $pagefinder = new PageFinder();
+    $test = $pagefinder->getQuery($selector,['returnVerbose' => false])->getQuery();
+    $pwfinder = $this->indent($test, 4);
+    // bd($pwfinder, 'native getQuery');
 
     // start sql statement
     $sql = "SELECT\n  `pages`.`id` AS `id`";
