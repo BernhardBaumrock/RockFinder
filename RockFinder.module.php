@@ -33,7 +33,12 @@ class RockFinder extends WireData implements Module {
   public $joinPrefix;
 
   public function __construct($selector = '', $fields = []) {
-    $this->selector = $selector;
+    // set the selector as string
+    if(is_array($selector)) {
+      $selectors = $this->wire(new Selectors());
+      $this->selector = $selectors->arrayToKeyValueString($selector);
+    }
+    else $this->selector = $selector;
 
     // load all finderfield classes
     require_once('RockFinderField.class.php');
