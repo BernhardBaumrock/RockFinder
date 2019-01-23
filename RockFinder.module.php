@@ -6,7 +6,9 @@
  * MIT
  */
 class RockFinder extends WireData implements Module {
-  private $selector;
+  
+  private $selectorStr; // selector as string
+
   private $fields = [];
   private $closures = [];
   private $filtersAfter = [];
@@ -34,11 +36,7 @@ class RockFinder extends WireData implements Module {
 
   public function __construct($selector = '', $fields = []) {
     // set the selector as string
-    if(is_array($selector)) {
-      $selectors = $this->wire(new Selectors());
-      $this->selector = $selectors->arrayToKeyValueString($selector);
-    }
-    else $this->selector = $selector;
+    $this->setSelector($selector);
 
     // load all finderfield classes
     require_once('RockFinderField.class.php');
@@ -52,6 +50,53 @@ class RockFinder extends WireData implements Module {
   }
 
   /**
+   * Set selector for current finder.
+   *
+   * @param string|array $selector
+   * @return void
+   */
+  public function setSelector($selector) {
+    /** @var Selectors $selectors */
+    if(is_array($selector)) {
+      $selectors = $this->wire(new Selectors());
+      $this->selectorStr = $selectors->arrayToKeyValueString($selector);
+    }
+    else $this->selectorStr = $selector;
+  }
+
+  /**
+   * Set value of selector key.
+   *
+   * @param string $key
+   * @param string $value
+   * @return void
+   */
+  public function setSelectorValue($key, $value) {
+    $selector = $this->getSelectorArr();
+    $selector[$key] = $value;
+    $this->setSelector($selector);
+  }
+
+  /**
+   * Get the selector as string.
+   *
+   * @return void
+   */
+  public function getSelectorStr() {
+    return $this->selectorStr;
+  }
+
+  /**
+   * Get the selector as array.
+   *
+   * @return void
+   */
+  public function getSelectorArr() {
+    $selectors = $this->wire(new Selectors());
+    return $selectors->keyValueStringToArray($this->selectorStr);
+  }
+
+  /**
    * add a field to the finder
    */
   public function addField($name, $columns = [], $options = []) {
@@ -62,6 +107,12 @@ class RockFinder extends WireData implements Module {
     $options = array_merge($defaults, $options);
     $type = $options['type'];
     $alias = $options['alias'];
+
+    // if the field already exists we only add the columns and exit early
+    if($field = $this->getField($name)) {
+      $field->addColumns($columns);
+      return $field;
+    }
 
     // create new field
     // if the type is set, use this type
@@ -158,7 +209,7 @@ class RockFinder extends WireData implements Module {
     $sqltimer = $this->timer('getSQL');
 
     // get sql statement of pages->find
-    $selector = new Selectors($this->selector.$this->limit);
+    $selector = new Selectors($this->selectorStr.$this->limit);
     $pf = new PageFinder();
     $query = $pf->find($selector, ['returnQuery' => true]);
     $query['select'] = ['pages.id']; // we only need the id
@@ -491,7 +542,8 @@ class RockFinder extends WireData implements Module {
    */
   public function __debugInfo() {
     $info = parent::__debugInfo();
-    $info['selector'] = $this->selector;
+    $info['selectorStr'] = $this->selectorStr;
+    $info['selectorArr'] = $this->getSelectorArr();
     $info['fields'] = $this->fields;
     $info['closures'] = $this->closures;
     $info['debuginfo'] = $this->debuginfo;

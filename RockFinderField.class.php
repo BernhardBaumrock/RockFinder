@@ -112,6 +112,16 @@ abstract class RockFinderField extends WireData {
   }
 
   /**
+   * Add columns to this field.
+   *
+   * @param array $columns
+   * @return void
+   */
+  public function addColumns($columns) {
+    $this->columns = array_merge($this->columns, $columns);
+  }
+
+  /**
    * debugInfo PHP 5.6+ magic method
    *
    * This is used when you print_r() an object instance.
