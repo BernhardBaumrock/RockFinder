@@ -14,7 +14,7 @@ class RockFinderFieldRepeater extends RockFinderField {
       // todo: data is not multilanguage
       $sql .= ",\n  GROUP_CONCAT(`$column`.`data` ORDER BY FIND_IN_SET(`$column`.`pages_id`, `$this->alias`.`data`) separator '$this->separator') AS `$column`";
     }
-    $sql .= "\nFROM `field_{$this->name}` AS `$this->alias`";
+    $sql .= "\nFROM `field_".strtolower($this->name)."` AS `$this->alias`";
 
     // join all fields
     $ref = '';
@@ -24,12 +24,12 @@ class RockFinderFieldRepeater extends RockFinderField {
         // the first join needs to be done via find_in_set
         // because the data column holds a comma-separated list of page ids
         // with all the ids of the repeater pages
-        $sql .= "\nLEFT JOIN `field_$column` AS `$column` ON FIND_IN_SET(`$column`.`pages_id`, `$this->alias`.`data`)";
+        $sql .= "\nLEFT JOIN `field_".strtolower($column)."` AS `$column` ON FIND_IN_SET(`$column`.`pages_id`, `$this->alias`.`data`)";
         $ref = $column;
       }
       else {
         // join all following fields based on the pages_id column
-        $sql .= "\nLEFT JOIN `field_$column` AS `$column` ON `$column`.`pages_id` = `$ref`.`pages_id`";
+        $sql .= "\nLEFT JOIN `field_".strtolower($column)."` AS `$column` ON `$column`.`pages_id` = `$ref`.`pages_id`";
       }
     }
     $sql .= "\nGROUP BY `$this->alias`.`pages_id`";

@@ -21,14 +21,14 @@
       $sql .= ",\n  GROUP_CONCAT({$this->dataColumn($column)} ORDER BY `$this->alias`.`sort` SEPARATOR '$this->separator') AS `$column`";
     }
 
-    $sql .= "\nFROM `field_{$this->name}` AS `$this->alias`";
+    $sql .= "\nFROM `field_".strtolower($this->name)."` AS `$this->alias`";
 
     // join all fields
     foreach($this->columns as $i=>$column) {
       if($i==0) continue; // skip data column
       else {
         // join all following fields based on the pages_id column
-        $sql .= "\nLEFT JOIN `field_$column` AS `$column` ON `$column`.`pages_id` = `$this->alias`.`data`";
+        $sql .= "\nLEFT JOIN `field_".strtolower($column)."` AS `$column` ON `$column`.`pages_id` = `$this->alias`.`data`";
       }
     }
 

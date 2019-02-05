@@ -28,7 +28,7 @@ abstract class RockFinderField extends WireData {
     foreach($this->columns as $column) {
       $sql .= ",\n  {$this->dataColumn($this->alias)} AS `{$this->fieldAlias($column)}`";
     }
-    $sql .= "\nFROM `field_{$this->name}` AS `$this->alias`";
+    $sql .= "\nFROM `field_".strtolower($this->name)."` AS `$this->alias`";
     return $sql;
   }
 
