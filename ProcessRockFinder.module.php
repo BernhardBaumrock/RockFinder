@@ -52,32 +52,36 @@ class ProcessRockFinder extends Process {
     $f->label = 'Code to execute';
     $form->add($f);
 
-    // save code to file
-    file_put_contents($this->config->paths->assets . 'RockGrid/tester.txt', $code);
-    $search = ['<?php', 'new RockFinder'];
-    $replace = ['//', 'new \ProcessWire\RockFinder'];
-    $code = eval(str_replace($search, $replace, $code));
+    try {
+      // save code to file
+      file_put_contents($this->config->paths->assets . 'RockGrid/tester.txt', $code);
+      $search = ['<?php', 'new RockFinder'];
+      $replace = ['//', 'new \ProcessWire\RockFinder'];
+      $code = eval(str_replace($search, $replace, $code));
 
-    $f = $this->modules->get('InputfieldRockGrid');
-    if($f) {
-      $f->type = 'RockGrid';
-      $f->label = 'Result';
-      $f->name = 'ProcessRockFinderResult';
-      $f->debug = true;
-      if($code instanceof RockFinder) {
-        $finder = $code;
-        $finder->debug = true;
-        // get code of this finder
-        $code = $finder->getSQL();
+      $f = $this->modules->get('InputfieldRockGrid');
+      if($f) {
+        $f->type = 'RockGrid';
+        $f->label = 'Result';
+        $f->name = 'ProcessRockFinderResult';
+        $f->debug = true;
+        if($code instanceof RockFinder) {
+          $finder = $code;
+          $finder->debug = true;
+          // get code of this finder
+          $code = $finder->getSQL();
 
-        // enable debugging now the initial sql request is done
-        $f->setData($finder);
+          // enable debugging now the initial sql request is done
+          $f->setData($finder);
+        }
+        else {
+          // populate sql property of finder
+          $f->sql = $code;
+        }
+        $form->add($f);
       }
-      else {
-        // populate sql property of finder
-        $f->sql = $code;
-      }
-      $form->add($f);
+    } catch (\Throwable $th) {
+      $this->error($th->getMessage());
     }
 
     $this->config->styles->add('//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css');
