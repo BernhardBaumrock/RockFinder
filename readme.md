@@ -182,3 +182,5 @@ Multilanguage is ON by default. Options:
 $finder->strictLanguage = false;
 $finder->multiLang = true;
 ```
+
+Setting strictLang = true means that RockFinder will return the result of the queried field in the active language of the user. If strictLang is set to false, the finder will return the field's value in the user's language and if that is empty, it will return the first available value.
