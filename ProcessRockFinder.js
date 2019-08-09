@@ -22,7 +22,7 @@ document.addEventListener('RockGridItemBeforeInit', function(e) {
     // extend the current renderer and add custom icons
     return '<span>' + params.data.id + '</span>' + RockGrid.renderers.actionItems(params, [{
       icon: 'fa fa-search',
-      href: '/admin/page/edit/?id=' + params.data.id,
+      href: ProcessWire.config.urls.admin + 'page/edit/?id=' + params.data.id,
       str: 'show',
       class: 'class="pw-panel"',
       target: 'target="_blank"',
