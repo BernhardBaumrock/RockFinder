@@ -228,7 +228,7 @@ class RockFinder extends WireData implements Module {
 
     // add all select statements
     foreach($this->selects as $alias=>$statement) {
-      $sql .= ",\n  ($statement) AS $alias";
+      $sql .= ",\n  ($statement) AS `$alias`";
     }
 
     $sql .= "\nFROM\n  `pages`";
