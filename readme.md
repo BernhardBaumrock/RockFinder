@@ -1,5 +1,11 @@
 # RockFinder
 
+#######################
+
+Please use the new RockFinder2: https://processwire.com/talk/topic/22205-rockfinder2-combine-the-power-of-pw-selectors-and-sql/
+
+#######################
+
 ## WHY?
 
 This module was built to fill the gap between simple $pages->find() operations and complex SQL queries.
