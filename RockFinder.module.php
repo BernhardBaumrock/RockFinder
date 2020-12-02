@@ -1,12 +1,12 @@
 <?php namespace ProcessWire;
 /**
  * Highly Efficient and Flexible SQL Finder Module
- * 
+ *
  * Bernhard Baumrock, baumrock.com
  * MIT
  */
 class RockFinder extends WireData implements Module {
-  
+
   private $selectorStr; // selector as string
 
   private $fields = [];
@@ -17,7 +17,7 @@ class RockFinder extends WireData implements Module {
   // here we can set a limit to use for the selector
   // this is needed for getDataColumns to only query one row for better performance
   public $limit = '';
- 
+
   // array holding debug info
   public $debug;
   public $debuginfo = [];
@@ -146,7 +146,7 @@ class RockFinder extends WireData implements Module {
     }
     $field = new $class($name, $columns, $type);
     if($alias) $field->alias = $alias;
-    
+
     // add it to the fields array
     $this->fields[] = $field;
     return $field;
@@ -213,7 +213,10 @@ class RockFinder extends WireData implements Module {
     $pf = new PageFinder();
     $query = $pf->find($selector, ['returnQuery' => true]);
     $query['select'] = ['pages.id']; // we only need the id
-    $pwfinder = $this->indent($query->prepare()->queryString, 4);
+
+    if (method_exists($query, 'getDebugQuery')) $sql = $query->getDebugQuery();
+    else $sql = $query->getQuery();
+    $pwfinder = $this->indent($sql, 4);
 
     // start sql statement
     $sql = "SELECT\n  `pages`.`id` AS `id`";
@@ -242,7 +245,7 @@ class RockFinder extends WireData implements Module {
     $sql .= "\nFROM";
     $sql .= "\n    /* original pw query */";
     $sql .= "\n    ($pwfinder) as `pwfinder`";
-    
+
     $sql .= "\n\n/* rockfinder */";
     $sql .= "\nLEFT JOIN (";
     $sql .= "    " . $this->indent($rockfinder, 4);
@@ -372,7 +375,7 @@ class RockFinder extends WireData implements Module {
       ? ', AJAX is turned ON and not tracked'
       : ''
       ;
-    
+
     $this->timer('getObjects', $timer, 'Includes executeClosures' . $ajax);
     return $result;
   }
@@ -477,7 +480,7 @@ class RockFinder extends WireData implements Module {
   public function filterAfter($callback) {
     $this->filter($callback, true);
   }
-  
+
   /**
    * return an Array from a given sql statement
    * this is used for simple sub-selects that store aggregated data
@@ -511,7 +514,7 @@ class RockFinder extends WireData implements Module {
 
     // set the join prefix for the joined finder
     $finder->joinPrefix = $prefix;
-    
+
     // add join to array
     $this->joinedFinders[] = [$finder, $fields];
   }
